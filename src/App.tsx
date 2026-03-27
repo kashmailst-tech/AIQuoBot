@@ -4,6 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { AskQuestion } from './pages/AskQuestion';
@@ -18,6 +19,7 @@ import { Explore } from './pages/Explore';
 export default function App() {
   return (
     <Router>
+      <Toaster position="bottom-right" theme="system" />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

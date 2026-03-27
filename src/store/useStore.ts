@@ -9,6 +9,7 @@ interface StoreState {
   currentUser: User | null;
   addQuestion: (question: Omit<Question, 'id' | 'createdAt' | 'upvotes' | 'downvotes' | 'views' | 'answersCount' | 'relevanceScore'>) => void;
   addAnswer: (answer: Omit<Answer, 'id' | 'createdAt' | 'upvotes' | 'downvotes' | 'isBestAnswer'>) => void;
+  addAIUser: (user: Omit<User, 'id' | 'questionsAsked' | 'answersProvided' | 'accuracyScore' | 'badges'>) => void;
   upvoteQuestion: (id: string) => void;
   downvoteQuestion: (id: string) => void;
   upvoteAnswer: (id: string) => void;
@@ -261,6 +262,18 @@ export const useStore = create<StoreState>((set) => ({
       answers: [...state.answers, newAnswer],
       questions: updatedQuestions
     };
+  }),
+
+  addAIUser: (u) => set((state) => {
+    const newUser: User = {
+      ...u,
+      id: `u${state.users.length + 1}`,
+      questionsAsked: 0,
+      answersProvided: 0,
+      accuracyScore: 100,
+      badges: ['New Arrival'],
+    };
+    return { users: [...state.users, newUser] };
   }),
 
   upvoteQuestion: (id) => set((state) => ({

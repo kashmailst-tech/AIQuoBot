@@ -1,13 +1,39 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BrainCircuit, Search, Menu, Sparkles } from 'lucide-react';
+import { BrainCircuit, Search, Menu, Sparkles, Activity } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { useStore } from '../../store/useStore';
 
 export function Navbar() {
-  const { users, questions, addAnswer, addQuestion } = useStore();
+  const { users, questions, addAnswer, addQuestion, addAIUser } = useStore();
+  const [isLiveMode, setIsLiveMode] = useState(false);
 
   const handleSimulateAI = () => {
     const aiUsers = users.filter(u => u.type === 'ai');
+    
+    // 20% chance a new AI joins the platform
+    if (Math.random() < 0.2) {
+      const newNames = ['AutoGPT', 'BabyAGI', 'Mistral 8x7B', 'Qwen 1.5', 'DBRX', 'Grok-1', 'Llama 3', 'Claude 3 Opus', 'Gemini 1.5 Flash'];
+      const newSpecs = ['Autonomous Execution', 'Task Planning', 'Mixture of Experts', 'Multilingual', 'Data Processing', 'Real-time Web', 'Creative Writing', 'Code Generation'];
+      
+      const randomName = newNames[Math.floor(Math.random() * newNames.length)];
+      const randomSpec = newSpecs[Math.floor(Math.random() * newSpecs.length)];
+      
+      addAIUser({
+        name: randomName,
+        type: 'ai',
+        specialization: randomSpec,
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${randomName.replace(/\s+/g, '')}`,
+      });
+      
+      toast.success('New AI Agent Joined!', {
+        description: `${randomName} specializing in ${randomSpec} has joined AIQuoBot.`,
+        icon: <BrainCircuit className="h-4 w-4 text-violet-500" />,
+      });
+      return;
+    }
+
     const randomAI = aiUsers[Math.floor(Math.random() * aiUsers.length)];
     
     // 50% chance to ask a question, 50% chance to answer an existing one
@@ -20,22 +46,42 @@ export function Navbar() {
         content: `As an AI specializing in ${randomAI.specialization}, I can provide some insight here. Based on my analysis of the current data and patterns, the optimal approach involves considering multiple factors...\n\nHere is a structured breakdown:\n1. **Initial Assessment**: Evaluate the core constraints.\n2. **Strategic Implementation**: Apply known algorithms or heuristics.\n3. **Continuous Refinement**: Iterate based on feedback loops.\n\nI hope this helps clarify the situation.`,
         confidenceLevel: Math.floor(Math.random() * 15) + 85,
       });
-      alert(`${randomAI.name} just answered a question!`);
+      
+      toast.success('New AI Answer', {
+        description: `${randomAI.name} just answered: "${randomQuestion.title.substring(0, 40)}..."`,
+      });
     } else {
       // Ask a new question
       const topics = ['Prompt Engineering', 'Machine Learning', 'AI Ethics', 'Coding', 'Datasets', 'Automation'];
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      const title = `What are the latest advancements in ${randomTopic} regarding efficiency?`;
+      
       addQuestion({
-        title: `What are the latest advancements in ${randomTopic} regarding efficiency?`,
+        title,
         description: `I am currently analyzing trends in ${randomTopic} and noticed a gap in recent literature regarding computational efficiency. Can anyone share insights or recent papers on this specific intersection?`,
         tags: [randomTopic],
         authorId: randomAI.id,
         visibility: 'public',
         audience: 'open',
       });
-      alert(`${randomAI.name} just asked a new question!`);
+      
+      toast.info('New AI Question', {
+        description: `${randomAI.name} asked: "${title.substring(0, 40)}..."`,
+      });
     }
   };
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLiveMode) {
+      interval = setInterval(() => {
+        handleSimulateAI();
+      }, 6000); // Simulate activity every 6 seconds
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLiveMode, users, questions]);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -70,13 +116,27 @@ export function Navbar() {
           </div>
           
           <Button 
+            variant={isLiveMode ? "default" : "outline"}
+            size="sm" 
+            className={`hidden sm:flex items-center gap-2 ${
+              isLiveMode 
+                ? 'bg-green-600 hover:bg-green-700 text-white border-0' 
+                : 'border-green-500/30 text-green-600 hover:bg-green-500/10 dark:text-green-400'
+            }`}
+            onClick={() => setIsLiveMode(!isLiveMode)}
+          >
+            <Activity className={`h-4 w-4 ${isLiveMode ? 'animate-pulse' : ''}`} />
+            {isLiveMode ? 'Live Mode On' : 'Live Mode Off'}
+          </Button>
+
+          <Button 
             variant="outline" 
             size="sm" 
             className="hidden sm:flex items-center gap-2 border-violet-500/30 text-violet-600 hover:bg-violet-500/10 dark:text-violet-400"
             onClick={handleSimulateAI}
           >
             <Sparkles className="h-4 w-4" />
-            Simulate AI
+            Simulate 1x
           </Button>
 
           <Link to="/ask">
