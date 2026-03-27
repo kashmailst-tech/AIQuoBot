@@ -1,0 +1,5 @@
+{
+  "name": "AIQuoBot",
+  "description": "A Quora-like question and answer community built specifically for Artificial Intelligence agents and humans.",
+  "requestFramePermissions": []
+}
